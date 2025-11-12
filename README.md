@@ -3,5 +3,5 @@ K-Means algorithm using nearest neighbor to find the shortest method to travel t
 
 ## Instructions
 To Run: 
-  1. Run the file `ComputePossibleSolutions.py` in the terminal in the project directory \
-  2. Enter the fille such as `Almond9832.txt`, input files are included \
+  1. Run the file `ComputePossibleSolutions.py` in the terminal in the project directory 
+  2. Enter the fille such as `Almond9832.txt`, input files are included 
