@@ -34,19 +34,27 @@ def compute_routes(file_name):
     
     clusters = []
     route_dists = []
+    seK_Distances = {} #Initialize dictionary to hold sek values
     for k in range(1, 5):  # 1 to 4 drones
+        seK_val = 0.0 #initialize the value for sek
         if k == 1:
             cluster_centers = [np.mean(data, axis=0)]
             labels = np.zeros(len(data))
+
+            center = cluster_centers[0]
+            seK_val = np.sum((data-center)**2) #This is because we need to find the sum of squared distances from the center
         else:
             kmeans = KMeans(n_clusters=k, n_init=10, random_state=42).fit(data)
             labels = kmeans.labels_
             cluster_centers = kmeans.cluster_centers_
 
+            seK_val = kmeans.inertia_ # sum of squared distances to closest cluster center
+
+        seK_Distances[f"Drone {k}"] = f"{seK_val:.2f}" #store sek score to dictionary
         total_distance = 0
         print(f"If you use {k} drone(s):")
 
-        
+        print(f"Objective function (seK) = {seK_val:.2f}")
         for i in range(k):
             cluster_points = data[labels == i] # select only the rows from data whose corresponding labels value equals i
             route, route_dist = nearest_neighbor_route(cluster_points)
@@ -62,7 +70,11 @@ def compute_routes(file_name):
         setup_time = 2 * k
         print(f" Total route distance = {total_distance:.1f} meters")
         print(f" Estimated time = {flight_time + setup_time:.1f} minutes\n")
-
+        
+        #Print seK Dictionary
+        #print("seK values for different number of drones:")
+        #print(seK_Distances)
+    
     return clusters, route_dists
         
 def create_output_files(input_file, num_drones, clusters, route_dists):
