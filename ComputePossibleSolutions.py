@@ -32,6 +32,8 @@ def compute_routes(file_name):
     print(f"ComputePossibleSolutions\nEnter the name of file: {file_name}")
     print(f"There are {len(data)} nodes: Solutions will be available in 5 minutes or less\n")
     
+    clusters = []
+    route_dists = []
     for k in range(1, 5):  # 1 to 4 drones
         if k == 1:
             cluster_centers = [np.mean(data, axis=0)]
@@ -44,13 +46,15 @@ def compute_routes(file_name):
         total_distance = 0
         print(f"If you use {k} drone(s):")
 
+        
         for i in range(k):
             cluster_points = data[labels == i] # select only the rows from data whose corresponding labels value equals i
             route, route_dist = nearest_neighbor_route(cluster_points)
+            clusters.append(cluster_points)
+            route_dists.append(route_dist)
             pad = np.mean(cluster_points, axis=0)
             if route_dist > total_distance:
                     total_distance = route_dist
-            # total_distance += route_dist
             print(f" Landing Pad {i+1} should be at {pad.round(2)}, "
                   f"serving {len(cluster_points)} locations, route is {route_dist:.1f} meters")
 
@@ -59,8 +63,36 @@ def compute_routes(file_name):
         print(f" Total route distance = {total_distance:.1f} meters")
         print(f" Estimated time = {flight_time + setup_time:.1f} minutes\n")
 
+    return clusters, route_dists
+        
+def create_output_files(input_file, num_drones, clusters, route_dists):
+
+    if num_drones == 1:
+        clusters = clusters[0]
+        route_dists = route_dists[0]
+    elif num_drones == 2:
+        clusters = clusters[1:3]
+        route_dists = route_dists[1:3]
+    elif num_drones == 3:
+        clusters = clusters[3:6]
+        route_dists = route_dists[3:6]  
+    else:
+        clusters = clusters[6:10]
+        route_dists = route_dists[6:10]
+
+    print("Writing ", end="")
+    for i in range(num_drones):
+        with open(f"{input_file.replace('.txt', '')}_{i+1}_SOLUTION_{int(route_dists[i])}.txt", "w") as output_file:
+            for x, y in clusters[i]:
+                output_file.write(f"{x:.7e} {y:.7e}\n")
+        print(output_file.name, end=", ")
+    print("to disk")
+
+
 if __name__ == "__main__":
     filename = input("Enter the filename (e.g. Almond9832.txt): ")
     start = time.time()
-    compute_routes(filename)
+    clusters, route_dists = compute_routes(filename)
     print(f"Execution completed in {time.time() - start:.2f} seconds.")
+    num_drones = int(input("\n\nPlease select your choice 1 to 4: "))
+    create_output_files(filename, num_drones, clusters, route_dists)
