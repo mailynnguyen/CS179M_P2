@@ -54,7 +54,7 @@ def compute_routes(file_name):
         total_distance = 0
         print(f"If you use {k} drone(s):")
 
-        print(f"Objective function (seK) = {seK_val:.2f}")
+        #print(f"Objective function (seK) = {seK_val:.2f}")
         for i in range(k):
             cluster_points = data[labels == i] # select only the rows from data whose corresponding labels value equals i
             route, route_dist = nearest_neighbor_route(cluster_points)
