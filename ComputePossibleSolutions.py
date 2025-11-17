@@ -4,6 +4,7 @@ from sklearn.cluster import KMeans
 from itertools import permutations
 import math
 import time
+import matplotlib.pyplot as plt
 
 # euclidean distance
 def distance(p1, p2):
@@ -33,6 +34,7 @@ def compute_routes(file_name):
     print(f"There are {len(data)} nodes: Solutions will be available in 5 minutes or less\n")
     
     clusters = []
+    routes = []
     route_dists = []
     seK_Distances = {} #Initialize dictionary to hold sek values
     for k in range(1, 5):  # 1 to 4 drones
@@ -59,6 +61,7 @@ def compute_routes(file_name):
             cluster_points = data[labels == i] # select only the rows from data whose corresponding labels value equals i
             route, route_dist = nearest_neighbor_route(cluster_points)
             clusters.append(cluster_points)
+            routes.append(route)
             route_dists.append(route_dist)
             pad = np.mean(cluster_points, axis=0)
             if route_dist > total_distance:
@@ -75,36 +78,73 @@ def compute_routes(file_name):
         #print("seK values for different number of drones:")
         #print(seK_Distances)
     
-    return clusters, route_dists
+    return clusters, routes, route_dists
         
-def create_output_files(input_file, num_drones, clusters, route_dists):
+def create_output_files(input_file, num_drones, clusters, routes, route_dists):
 
     if num_drones == 1:
         clusters = clusters[0]
+        routes = routes[0]
         route_dists = route_dists[0]
     elif num_drones == 2:
         clusters = clusters[1:3]
+        routes = routes[1:3]
         route_dists = route_dists[1:3]
     elif num_drones == 3:
         clusters = clusters[3:6]
+        routes = routes[3:6]
         route_dists = route_dists[3:6]  
     else:
         clusters = clusters[6:10]
+        routes = routes[6:10]
         route_dists = route_dists[6:10]
+
+    
 
     print("Writing ", end="")
     for i in range(num_drones):
+        cluster_points = np.array(clusters[i]) # list of coordinates in the cluster, numpy makes it a 2d array
+        ordered_points = cluster_points[routes[i]] # routes is list of indices in the cluster, advanced indexing
         with open(f"{input_file.replace('.txt', '')}_{i+1}_SOLUTION_{int(route_dists[i])}.txt", "w") as output_file:
-            for x, y in clusters[i]:
+            for x, y in ordered_points:
                 output_file.write(f"{x:.7e} {y:.7e}\n")
         print(output_file.name, end=", ")
     print("to disk")
 
+def create_visuals(num_drones, routes, clusters):
+
+    if num_drones == 1:
+        clusters = clusters[0]
+        routes = routes[0]
+    elif num_drones == 2:
+        clusters = clusters[1:3]
+        routes = routes[1:3]
+    elif num_drones == 3:
+        clusters = clusters[3:6]
+        routes = routes[3:6]
+    else:
+        clusters = clusters[6:10]
+        routes = routes[6:10]
+
+    centers = []
+    for i in range(num_drones):
+        cluster_points = np.array(clusters[i])
+        ordered_points = cluster_points[routes[i]]
+        plt.scatter(cluster_points[:, 0], cluster_points[:, 1])
+        plt.plot(ordered_points[:, 0], ordered_points[:, 1])
+
+        centers.append(np.mean(cluster_points, axis=0))
+    
+    centers = np.array(centers)
+    plt.scatter(centers[:, 0], centers[:, 1], marker='X')
+
+    plt.show()
 
 if __name__ == "__main__":
     filename = input("Enter the filename (e.g. Almond9832.txt): ")
     start = time.time()
-    clusters, route_dists = compute_routes(filename)
+    clusters, routes, route_dists = compute_routes(filename)
     print(f"Execution completed in {time.time() - start:.2f} seconds.")
     num_drones = int(input("\n\nPlease select your choice 1 to 4: "))
-    create_output_files(filename, num_drones, clusters, route_dists)
+    create_output_files(filename, num_drones, clusters, routes, route_dists)
+    create_visuals(num_drones, routes, clusters)
