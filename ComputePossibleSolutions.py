@@ -99,8 +99,6 @@ def create_output_files(input_file, num_drones, clusters, routes, route_dists):
         routes = routes[6:10]
         route_dists = route_dists[6:10]
 
-    
-
     print("Writing ", end="")
     for i in range(num_drones):
         cluster_points = np.array(clusters[i]) # list of coordinates in the cluster, numpy makes it a 2d array
@@ -111,7 +109,7 @@ def create_output_files(input_file, num_drones, clusters, routes, route_dists):
         print(output_file.name, end=", ")
     print("to disk")
 
-def create_visuals(num_drones, routes, clusters):
+def create_visuals(input_file, num_drones, routes, clusters):
 
     if num_drones == 1:
         clusters = clusters[0]
@@ -138,6 +136,7 @@ def create_visuals(num_drones, routes, clusters):
     centers = np.array(centers)
     plt.scatter(centers[:, 0], centers[:, 1], marker='X')
 
+    plt.savefig(f"{input_file.replace('.txt', '')}_OVERALL_SOLUTION.jpeg")
     plt.show()
 
 if __name__ == "__main__":
@@ -147,4 +146,4 @@ if __name__ == "__main__":
     print(f"Execution completed in {time.time() - start:.2f} seconds.")
     num_drones = int(input("\n\nPlease select your choice 1 to 4: "))
     create_output_files(filename, num_drones, clusters, routes, route_dists)
-    create_visuals(num_drones, routes, clusters)
+    create_visuals(filename, num_drones, routes, clusters)
